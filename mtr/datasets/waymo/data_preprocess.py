@@ -49,7 +49,8 @@ def decode_map_features_from_proto(map_features):
         'road_edge': [],
         'stop_sign': [],
         'crosswalk': [],
-        'speed_bump': []
+        'speed_bump': [],
+        'driveway': []
     }
     polylines = []
 
@@ -62,21 +63,21 @@ def decode_map_features_from_proto(map_features):
             cur_info['type'] = lane_type[cur_data.lane.type]  # 0: undefined, 1: freeway, 2: surface_street, 3: bike_lane
 
             cur_info['interpolating'] = cur_data.lane.interpolating
-            cur_info['entry_lanes'] = list(cur_data.lane.entry_lanes)
-            cur_info['exit_lanes'] = list(cur_data.lane.exit_lanes)
-
-            cur_info['left_boundary'] = [{
-                    'start_index': x.lane_start_index, 'end_index': x.lane_end_index,
-                    'feature_id': x.boundary_feature_id,
-                    'boundary_type': x.boundary_type  # roadline type
-                } for x in cur_data.lane.left_boundaries
-            ]
-            cur_info['right_boundary'] = [{
-                    'start_index': x.lane_start_index, 'end_index': x.lane_end_index,
-                    'feature_id': x.boundary_feature_id,
-                    'boundary_type': road_line_type[x.boundary_type]  # roadline type
-                } for x in cur_data.lane.right_boundaries
-            ]
+            # cur_info['entry_lanes'] = list(cur_data.lane.entry_lanes)
+            # cur_info['exit_lanes'] = list(cur_data.lane.exit_lanes)
+            #
+            # cur_info['left_boundary'] = [{
+            #         'start_index': x.lane_start_index, 'end_index': x.lane_end_index,
+            #         'feature_id': x.boundary_feature_id,
+            #         'boundary_type': x.boundary_type  # roadline type
+            #     } for x in cur_data.lane.left_boundaries
+            # ]
+            # cur_info['right_boundary'] = [{
+            #         'start_index': x.lane_start_index, 'end_index': x.lane_end_index,
+            #         'feature_id': x.boundary_feature_id,
+            #         'boundary_type': road_line_type[x.boundary_type]  # roadline type
+            #     } for x in cur_data.lane.right_boundaries
+            # ]
 
             global_type = polyline_type[cur_info['type']]
             cur_polyline = np.stack([np.array([point.x, point.y, point.z, global_type]) for point in cur_data.lane.polyline], axis=0)
@@ -129,6 +130,14 @@ def decode_map_features_from_proto(map_features):
             cur_polyline = np.concatenate((cur_polyline[:, 0:3], cur_polyline_dir, cur_polyline[:, 3:]), axis=-1)
 
             map_infos['speed_bump'].append(cur_info)
+
+        elif cur_data.driveway.ByteSize() > 0:
+            global_type = polyline_type['TYPE_DRIVEWAY']
+            cur_polyline = np.stack(
+                [np.array([point.x, point.y, point.z, global_type]) for point in cur_data.driveway.polygon], axis=0)
+            cur_polyline_dir = get_polyline_dir(cur_polyline[:, 0:3])
+            cur_polyline = np.concatenate((cur_polyline[:, 0:3], cur_polyline_dir, cur_polyline[:, 3:]), axis=-1)
+            map_infos['driveway'].append(cur_info)
 
         else:
             print(cur_data)
