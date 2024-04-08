@@ -56,6 +56,7 @@ def decode_map_features_from_proto(map_features):
 
     point_cnt = 0
     for cur_data in map_features:
+        # print(cur_data)
         cur_info = {'id': cur_data.id}
 
         if cur_data.lane.ByteSize() > 0:
@@ -141,6 +142,7 @@ def decode_map_features_from_proto(map_features):
 
         else:
             print(cur_data)
+            print(type(cur_data))
             raise ValueError
 
         polylines.append(cur_polyline)
@@ -237,7 +239,7 @@ def get_infos_from_protos(data_path, output_path=None, num_workers=8):
     return all_infos
 
 
-def create_infos_from_protos(raw_data_path, output_path, num_workers=16):
+def create_infos_from_protos(raw_data_path, output_path, num_workers=28):
     train_infos = get_infos_from_protos(
         data_path=os.path.join(raw_data_path, 'training'),
         output_path=os.path.join(output_path, 'processed_scenarios_training'),
